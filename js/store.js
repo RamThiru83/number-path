@@ -39,13 +39,18 @@ async function send(op) {
   if (res.error) throw res.error;
 }
 
-export async function flush() {
-  if (!navigator.onLine || !state.user) return;
-  const rest = [];
-  for (const op of queue) {
-    try { await send(op); } catch (e) { rest.push(op); if (!navigator.onLine) break; }
-  }
-  queue = rest; saveQueue();
+let flushing = null;
+export function flush() {
+  if (!navigator.onLine || !state.user) return Promise.resolve();
+  if (flushing) return flushing.then(() => (queue.length ? flush() : undefined));
+  flushing = (async () => {
+    while (queue.length) {
+      const op = queue[0];
+      try { await send(op); queue.shift(); saveQueue(); }
+      catch (e) { break; } // keep it for the next attempt
+    }
+  })().finally(() => { flushing = null; });
+  return flushing;
 }
 
 function enqueue(op) { queue.push(op); saveQueue(); flush(); }

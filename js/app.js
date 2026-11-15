@@ -144,7 +144,7 @@ function epRow(k, unit, { extra = false } = {}) {
   const ico = e.kind === 'song' ? icon.music : icon.play;
   return `<li class="ep ${w ? 'watched' : ''}">
     <button class="epbtn" data-ep="${k}" data-unit="${unit ? unit.id : ''}">
-      <span class="thumb">${e.yt ? `<img loading="lazy" alt="" src="https://i.ytimg.com/vi/${e.yt}/mqdefault.jpg">` : ''}<span class="pl">${ico}</span></span>
+      <span class="thumb">${e.yt ? `<img loading="lazy" alt="" onerror="this.remove()" src="https://i.ytimg.com/vi/${e.yt}/mqdefault.jpg">` : ''}<span class="pl">${ico}</span></span>
       <span class="meta"><b>${esc(e.title)}</b><small>${esc(e.label)}${e.provisional ? ' · placement to confirm' : ''}${extra ? ' · extra' : ''}</small></span>
       ${w ? `<span class="seen">${icon.tick}</span>` : ''}
     </button></li>`;

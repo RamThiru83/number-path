@@ -167,3 +167,9 @@ input:focus, select:focus, .btn:focus-visible, .stone:focus-visible { outline: 3
   .brand span { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+@media (max-width: 640px) {
+  .topbar { padding: 8px 12px; }
+  .nav { gap: 2px; flex-wrap: nowrap; }
+  .navlink { padding: 6px 8px; font-size: .88rem; }
+  .who { display: none; }
+}
