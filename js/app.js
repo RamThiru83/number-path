@@ -36,18 +36,9 @@ function renderNav() {
   n.innerHTML = `${kids}
     <a href="#/review" class="navlink">Review${due ? ` <b class="pill">${due}</b>` : ''}</a>
     <a href="#/explore" class="navlink">Explore</a>
-    <button class="navlink grown" id="grownBtn" title="Press and hold">Grown-ups</button>`;
+    <a href="#/gate" class="navlink grown" id="grownBtn">Grown-ups</a>`;
   const sel = $('#childSel');
   if (sel) sel.onchange = async () => { setChild(sel.value); await safe(loadChild); route(); };
-  holdToOpen($('#grownBtn'), () => { location.hash = '#/grownups'; });
-}
-
-function holdToOpen(btn, fn) {
-  let t;
-  const start = e => { e.preventDefault(); btn.classList.add('holding'); t = setTimeout(() => { btn.classList.remove('holding'); fn(); }, 1200); };
-  const stop = () => { clearTimeout(t); btn.classList.remove('holding'); };
-  btn.addEventListener('pointerdown', start); ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, stop));
-  btn.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') fn(); });
 }
 
 // ------------------------------------------------------------------ sign in / setup
@@ -380,6 +371,29 @@ function renderGrownups() {
   };
 }
 
+
+// ------------------------------------------------------------------ grown-up gate
+let gateOk = false; // stays open until the page is reloaded
+function renderGate() {
+  if (gateOk) { location.replace('#/grownups'); return; }
+  const a = 6 + Math.floor(Math.random() * 4), b = 6 + Math.floor(Math.random() * 4);
+  view.innerHTML = `<section class="card narrow">
+    <h1>Grown-ups only</h1>
+    <p class="lead">What is ${a} × ${b}?</p>
+    <form id="gate" class="stack">
+      <input name="ans" inputmode="numeric" autocomplete="off" required aria-label="Answer">
+      <button class="btn primary" type="submit">Open</button>
+    </form>
+    <p><a class="back" href="#/">← Back to the path</a></p>
+  </section>`;
+  const inp = view.querySelector('input'); inp.focus();
+  $('#gate').onsubmit = e => {
+    e.preventDefault();
+    if (+inp.value === a * b) { gateOk = true; location.replace('#/grownups'); }
+    else { toast('Not quite — ask a grown-up.'); renderGate(); }
+  };
+}
+
 // ------------------------------------------------------------------ print card
 function renderPrint(id) {
   const u = unitById(id); if (!u) return renderNotFound();
@@ -408,7 +422,8 @@ function route() {
   else if (p === 'review') renderReview();
   else if (p === 'mix') renderMix(a, b);
   else if (p === 'explore') renderExplore();
-  else if (p === 'grownups') renderGrownups();
+  else if (p === 'gate') renderGate();
+  else if (p === 'grownups') { if (gateOk) renderGrownups(); else location.replace('#/gate'); }
   else if (p === 'print') renderPrint(decodeURIComponent(a));
   else renderNotFound();
   view.focus({ preventScroll: true });
