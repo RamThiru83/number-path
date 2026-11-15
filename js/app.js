@@ -365,14 +365,19 @@ function renderGrownups() {
         <p class="muted small">They sign in with that email and join automatically.</p></form>` : ''}
     </div>
     ${state.invites.length ? `<ul class="list">${state.invites.map(i => `<li>${esc(i.email)} <span class="muted">${i.accepted_at ? 'joined' : 'pending'}</span> ${isOwner && !i.accepted_at ? `<button class="link" data-rminv="${i.id}">remove</button>` : ''}</li>`).join('')}</ul>` : ''}
-    <p><button class="btn ghost" id="signout">Sign out</button></p>
+    <p><button class="btn ghost" id="signout">Sign out</button> <span class="muted small">Also signs this browser out of EpiCompass, which shares the login.</span></p>
     <p class="muted small">Videos play from the official Numberblocks YouTube channel. This private family app is not affiliated with Alphablocks Ltd or the BBC.</p>
   </section>`;
   view.querySelectorAll('[data-ov]').forEach(c => c.onchange = () => { setOverride(c.dataset.ov, c.checked); toast(c.checked ? 'Unlocked.' : 'Lock restored.'); renderGrownups(); });
   $('#addChild').onsubmit = async e => { e.preventDefault(); try { await addChild(new FormData(e.target).get('n')); toast('Added.'); renderNav(); renderGrownups(); } catch (err) { toast(err.message); } };
   const inv = $('#inv'); if (inv) inv.onsubmit = async e => { e.preventDefault(); try { await invite(new FormData(e.target).get('e')); toast('Invite saved.'); renderGrownups(); } catch (err) { toast(err.message); } };
   view.querySelectorAll('[data-rminv]').forEach(b => b.onclick = async () => { try { await removeInvite(b.dataset.rminv); renderGrownups(); } catch (err) { toast(err.message); } });
-  $('#signout').onclick = async () => { await sb.auth.signOut(); localStorage.clear(); location.hash = '#/'; location.reload(); };
+  $('#signout').onclick = async () => {
+    // Sign-in is shared with EpiCompass on this domain: sign out of this device only and clear only Number Path data.
+    await sb.auth.signOut({ scope: 'local' });
+    Object.keys(localStorage).filter(k => k.startsWith('np.')).forEach(k => localStorage.removeItem(k));
+    location.hash = '#/'; location.reload();
+  };
 }
 
 // ------------------------------------------------------------------ print card
